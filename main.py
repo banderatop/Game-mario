@@ -38,6 +38,15 @@ class Player(GameSprite):
         if keys_pressed[K_RIGHT] and self.rect.x < WIDTH - 70:
             self.rect.x += self.speed
 
+platform = sprite.Group()
+def get_platform(x, y):
+    num = randint(1, 5)
+    for platform in range(num):
+        block = GameSprite(x , y)
+        x += 50
+
+
+
 window = display.set_mode((WIDTH, HEIGHT))
 display.set_caption("mario")
 
