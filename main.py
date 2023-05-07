@@ -1,5 +1,5 @@
 from pygame import *
-from random import randint
+from random import *
 
 import os
 
@@ -11,7 +11,7 @@ mixer.init()
 WIDTH, HEIGHT = 900, 600
 
 # картинка фону
-bg_image = image.load("hud/bg.png")
+bg_image = image.load("bg.png")
 #картинки для спрайтів
 player_image = image.load("player/p1_walk01.png")
 platform_image = image.load("platforms/grass.png")
@@ -35,11 +35,15 @@ class Player(GameSprite):
     def __init__(self, sprite_img, width, height, x, y, speed = 3):
         super().__init__(sprite_img, width, height, x, y, speed)
         self.move = False
+        self.jump_speed = 150
+        self.ground = True
+        self.fall_speed = 0
+
 
     def update(self):
         keys_pressed = key.get_pressed()
         if keys_pressed[K_LEFT] and self.rect.x > 0:
-            self.rect.x -= self.spped
+            self.rect.x -= self.speed
         if keys_pressed[K_RIGHT] and self.rect.x < WIDTH - 70:
             self.move = True
             if self.rect.x < WIDTH/2:
@@ -47,6 +51,23 @@ class Player(GameSprite):
         else:
             self.move = False
 
+        if keys_pressed[K_SPACE] and self.rect.y > 0 and self.ground:
+            self.rect.y -= self.jump_speed
+            self.ground = False
+        
+        if self.ground == False:
+            self.fall_speed += 0.25
+            self.rect.y += self.fall_speed
+        
+        collide_list = sprite.spritecollide(player, platform, False, sprite.collide_mask)
+        if len(collide_list) > 0:
+            self.ground = True
+        else:
+            self.ground = False
+        
+
+
+       
 platform = sprite.Group()
 last_platform = None
 
@@ -63,12 +84,12 @@ def get_platform(x, y):
 get_platform(0, 300)
 coords = [-100, -50, 0, 50, 100]
 
-def generate_platform():
+def generate_platforms():
     global last_platform
 
     while last_platform.rect.right < WIDTH:
         next_x = last_platform.rect.right + randint(50, 100)
-        next_y = last_platform.rect.y + choise(coords)
+        next_y = last_platform.rect.y + choice(coords)
         if next_y > 500:
             next_y = 500
         elif next_y < 150:
@@ -76,7 +97,7 @@ def generate_platform():
 
         get_platform(next_x, next_y)
 
-generate_platform()
+generate_platforms()
 
 
 
@@ -86,7 +107,7 @@ display.set_caption("mario")
 bg = transform.scale(bg_image, (WIDTH, HEIGHT))
 
 # створення спрайтів
-player = Player(player_image, width = 70, height = 70, x = 200, y = HEIGHT-150)
+player = Player(player_image, width = 70, height = 70, x = 50, y = 150)
 
 
 run = True
