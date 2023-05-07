@@ -11,9 +11,10 @@ mixer.init()
 WIDTH, HEIGHT = 900, 600
 
 # картинка фону
-bg_image = image.load("bg.png")
+bg_image = image.load("hud/bg.png")
 #картинки для спрайтів
 player_image = image.load("player/p1_walk01.png")
+platform_image = image.load("platforms/grass.png")
 
 
 
@@ -31,19 +32,51 @@ class GameSprite(sprite.Sprite):
         window.blit(self.image, self.rect)
 
 class Player(GameSprite):
-    def update(self): #рух спрайту
-        keys_pressed = key.get_pressed() 
+    def __init__(self, sprite_img, width, height, x, y, speed = 3):
+        super().__init__(sprite_img, width, height, x, y, speed)
+        self.move = False
+
+    def update(self):
+        keys_pressed = key.get_pressed()
         if keys_pressed[K_LEFT] and self.rect.x > 0:
-            self.rect.x -= self.speed
+            self.rect.x -= self.spped
         if keys_pressed[K_RIGHT] and self.rect.x < WIDTH - 70:
-            self.rect.x += self.speed
+            self.move = True
+            if self.rect.x < WIDTH/2:
+                self.rect.x += self.speed
+        else:
+            self.move = False
 
 platform = sprite.Group()
+last_platform = None
+
 def get_platform(x, y):
-    num = randint(1, 5)
-    for platform in range(num):
-        block = GameSprite(x , y)
+    global last_platform
+
+    num = randint(1, 8)
+    for i in range(num):
+        block = GameSprite(platform_image, 50, 50, x, y, )
+        last_platform = block
+        platform.add(block)
         x += 50
+
+get_platform(0, 300)
+coords = [-100, -50, 0, 50, 100]
+
+def generate_platform():
+    global last_platform
+
+    while last_platform.rect.right < WIDTH:
+        next_x = last_platform.rect.right + randint(50, 100)
+        next_y = last_platform.rect.y + choise(coords)
+        if next_y > 500:
+            next_y = 500
+        elif next_y < 150:
+            next_y = 150
+
+        get_platform(next_x, next_y)
+
+generate_platform()
 
 
 
@@ -53,7 +86,7 @@ display.set_caption("mario")
 bg = transform.scale(bg_image, (WIDTH, HEIGHT))
 
 # створення спрайтів
-player = Player(player_image, width = 100, height = 100, x = 200, y = HEIGHT-150)
+player = Player(player_image, width = 70, height = 70, x = 200, y = HEIGHT-150)
 
 
 run = True
@@ -69,9 +102,16 @@ while run:
     for e in event.get():
         if e.type == QUIT:
             run = False
-    
-    player.draw() 
+    if player.move:
+        for p in platform:
+            p.rect.x -= player.speed * 1.5
+            if p.rect.right < 0:
+                p.kill()
+        generate_platforms()
 
+    player.update()
+    player.draw() 
+    platform.draw(window)
 
     display.update()
     clock.tick(FPS)
