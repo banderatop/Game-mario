@@ -35,35 +35,37 @@ class Player(GameSprite):
     def __init__(self, sprite_img, width, height, x, y, speed = 3):
         super().__init__(sprite_img, width, height, x, y, speed)
         self.move = False
-        self.jump_speed = 150
+        self.jump_speed = 10
         self.ground = True
-        self.fall_speed = 0
-
+        self.speed_y = 0
+        self.speed_x = self.speed
+        self.gravity = 1
 
     def update(self):
+        self.speed_x = 0
+
         keys_pressed = key.get_pressed()
         if keys_pressed[K_LEFT] and self.rect.x > 0:
-            self.rect.x -= self.speed
+            self.speed.x -= self.speed
         if keys_pressed[K_RIGHT] and self.rect.x < WIDTH - 70:
             self.move = True
             if self.rect.x < WIDTH/2:
-                self.rect.x += self.speed
+                self.speed_x += self.speed
         else:
             self.move = False
 
         if keys_pressed[K_SPACE] and self.rect.y > 0 and self.ground:
-            self.rect.y -= self.jump_speed
+            self.speed_y -= self.jump_speed
             self.ground = False
         
-        if self.ground == False:
-            self.fall_speed += 0.25
-            self.rect.y += self.fall_speed
-        
-        collide_list = sprite.spritecollide(player, platform, False, sprite.collide_mask)
-        if len(collide_list) > 0:
-            self.ground = True
-        else:
-            self.ground = False
+        self.speed_y += self.gravity
+        self.rect.move_ip(self.speed_x, self.speed_y)
+        collide_list = sprite.spritecollide(player, platform, False)
+        if collide_list:
+            if self.speed_y > 0:
+                self.rect.bottom = collide_list[0].rect.top
+                self.speed_y = 0
+                self.ground = True 
         
 
 
