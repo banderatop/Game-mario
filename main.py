@@ -127,6 +127,7 @@ display.set_caption("mario")
 bg = transform.scale(bg_image, (WIDTH, HEIGHT))
 score_text = Text("Рахунок: 0", 20, 50)
 result_text = Text("Перемога!", 350, 250, font_size = 50)
+lost_text = Text("Програш!", 350, 250, font_size = 50)
 # створення спрайтів
 player = Player(player_image, width = 70, height = 70, x = 50, y = 150)
 
@@ -154,15 +155,17 @@ while run:
         c.rect.x -= player.speed * 1.5
         if c.rect.right < 0:
             c.kill()
-        
-        generate_platforms()
-    if player.move:
+    generate_platforms()
+    if sprite.spritecollide(player, coins, True, sprite.collide_mask):
         score += 1
-        score_text.set_text("Збито:" + str(score))
+        score_text.set_text("Рахунок:" + str(score))
 
-    if score >= 5000:
-        finish = True
+    if score >= 30:
+        finish = True 
         result_text.draw()
+    if player.rect.y >= HEIGHT:
+        finish = True 
+        lost_text.draw()
 
         
 
